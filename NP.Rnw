@@ -1,0 +1,133 @@
+\documentclass[a4paper]{article}
+
+\title{Résultats des estimations Probit et np}
+\author{Christophe}
+
+
+\usepackage{Sweave, setspace,graphicx,srcltx,enumitem,harvard, subfig}
+\usepackage{rotating}
+\begin{document}
+\SweaveOpts{concordance=TRUE}
+
+% Quelques Options de dipart pour mettre les graphiques dans un sous repertoire
+% et leur donner le nom Graph-001
+
+\SweaveOpts{prefix.string=GraphicsSweave/}  
+
+% Et pour laisser l affichage des commentaires du programmes
+\SweaveOpts{keep.source=TRUE}
+
+\maketitle
+%\tableofcontents
+%\newpage
+
+
+<<echo=FALSE, results=hide, label=data>>=
+## D abord on efface tout silencieusement... 
+
+rm(list=ls())
+
+setwd("D:/progs/Celine/Water/progs")   
+
+library(np)
+library(foreign)
+library(xtable)
+library(texreg)
+
+#options(np.messages=FALSE)
+
+## Load the data.
+## ORIGINAL DATA :  the ones where diploma  varaible is "diplo" and has 4 mod. (0ctober 2008)
+## Variable dipp is replaced by diplo
+
+data.all<-read.dta("../data/OECDFinal.dta")
+ 
+# Data type expressed (and used)
+data.all$i_tap <- factor(data.all$i_tap)
+data.all$i_under18 <- factor(data.all$i_under18) 
+data.all$i_posthighsch <- factor(data.all$i_posthighsch)
+data.all$lowincome <- factor(data.all$lowincome)
+data.all$i_town <- factor(data.all$i_town)
+data.all$i_car <- factor(data.all$i_car)
+data.all$isatis_health <- factor(data.all$isatis_health)
+data.all$b08_locenv_water <- ordered(data.all$b08_locenv_water)
+#data.all$b3_envconcern_index <- numeric(data.all$b3_envconcern_index) # <- continuous 
+data.all$b03_lessconcernwaste <- ordered(data.all$b03_lessconcernwaste)
+data.all$country <- factor(data.all$country)
+data.all$unitcharge <- factor(data.all$unitcharge)
+#data.all$b10_policy_indx <-numeric(data.all$b10_policy_indx)  # <- continuous 
+@
+
+\section{Probit model}
+
+<<echo=FALSE, results=hide, label=ProbitComplet>>=
+model.probit <- glm(i_tap ~ a2_age + i_under18  + i_posthighsch + lowincome 
+                    + i_town + i_car + isatis_health
+                    +  as.numeric(b08_locenv_water) + as.numeric(b3_envconcern_index)  
+                    + as.numeric(b03_lessconcernwaste)
+                    + country, 
+                    family = binomial(link = probit),
+                    data = data.all)
+
+@
+
+The underlying linear model estimated is the following (but it is a probit here)~: 
+
+<<echo=FALSE, label=ProbitModel>>=
+cc <-model.probit$call
+f <- cc$formula
+LHS <- as.character(f)[2]
+RHS <-  gsub("_", ".", as.character(f)[3])
+coefs <- gsub(" +","",strsplit(RHS,"\\+")[[1]])
+vars <- function(x) { paste("",x,"",sep="") }
+
+pars <- paste("\\\\beta_",0:(length(coefs)-1),sep="")
+p1 <- paste(pars[1:4],vars(coefs[1:4]),sep=" \\\\cdot ",collapse="+")
+p2 <- paste(pars[5:7],vars(coefs[5:7]),sep=" \\\\cdot ",collapse="+")
+p3 <- paste(pars[8:9],vars(coefs[8:9]),sep=" \\\\cdot ",collapse="+")
+p4 <- paste(paste(pars[10:length(coefs)],vars(coefs[10:length(coefs)]),sep=" \\\\cdot ",collapse="+"),
+           "+ \\\\epsilon")
+@ 
+
+\begin{eqnarray*}
+i.tap &=& \Sexpr{p1} \\
+      &+& \Sexpr{p2}  \\
+      &+& \Sexpr{p3}  \\
+      &+& \Sexpr{p4}  
+\end{eqnarray*}
+
+And the results are 
+<<results=tex, echo=FALSE, label=ProbitResults>>=
+#texreg(model.probit)   # <- if we want to compare models...
+xtable(model.probit, caption="Probit model.",label="tab:coef")
+@
+\clearpage
+
+\section{Probit model on  7 countries}
+<<echo=FALSE, label=Probit7>>=
+data.7 <- subset(data.all, country !="CHILE" & country !="ISRAEL" & country !="JAPAN" & country !="KOREA" )
+model.probit7 <- glm(i_tap ~ a2_age + i_under18  + i_posthighsch + lowincome 
+                    + i_town + i_car + isatis_health
+                    +  as.numeric(b08_locenv_water) + as.numeric(b3_envconcern_index)  
+                    + as.numeric(b03_lessconcernwaste)
+                    + b10_policy_indx
+                    + country, 
+                    family = binomial(link = probit),
+                    data = data.7)
+@
+
+
+<<results=tex, echo=FALSE, label=ProbitResults7>>=
+#texreg(model.probit)   # <- if we want to compare models...
+xtable(model.probit, caption="Probit model.",label="tab:coef")
+@
+
+
+
+
+\section{Modèle NP}
+
+
+bla bla bla 
+
+\end{document}

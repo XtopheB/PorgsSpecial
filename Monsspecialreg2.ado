@@ -11,6 +11,8 @@
 /* 25/07/2014 : Ajout d'une option BAND() pour le choix de la taille de la fenêtre,*/
 /*            :  la fenêtre choise est dans ereturn  */
 /* 30/07/2014 : Suppression du drop _all pour que eststo fonctionne en boucle... */
+/* 11/08/2014 : Mise à 999 pour le choix ordered choice  */
+
 *prog drop _all
 
 program define Monsspecialreg2, eclass
@@ -19,8 +21,12 @@ syntax varlist(numeric min=2 max=2)  [if] [in], ENDOG(string) IV(string) ///
               [EXOG(string) HETERO HETV(string) KDENS BAND(real 0)  WINSOR TRIM(real 2.5) BS BSREPS(integer 10)] 
 
 di""
-di  in red  " Proc Monsspecialreg2.ado - modifiée avec choix Bandwidth  (Version Juillet 2014 )"
+di  in red  " Proc Monsspecialreg2.ado - modifiée avec choix Bandwidth  (Version Aout 2014 )"
 di""
+capture drop toto  /* On effece la matrice temporaire mfx  */
+capture drop Tvar
+capture drop Uchap
+
 
 // check for _kdens
 	capt which _kdens
@@ -83,7 +89,7 @@ di""
 		mat `Vee' = e(V)  
 	}
 // end bs logic
-
+  
 	tempvar vee uhat uhat2 sc sigmau duhat fuhat T dxb sigma h kd dk m num tlim ttrm
 	tempname dxb0 em mfx bee 
 
@@ -103,6 +109,8 @@ di""
 		qui replace `uhat' = `uhat'/sqrt(abs(`sc')) if `sc' != 0
 	}
 
+    
+    
 // compute kernel density estimator via Jann's _kdens if KDENS; otherwise use sorted data density
 // estimator (Ben Jann's translation) per SimpleStata2010
 	if "`kdens'" == "kdens" {
@@ -117,7 +125,7 @@ di""
             di  "-- Fenetre (Silverman) choisie  : `band'"
             }
 	} 
-	else { /* Porcedure avec Ordered Choices  */
+	else { /* Procedure avec Ordered Choices  */
 	qui ssortedfm `uhat' if `touse', gen(`fuhat')
     local band = 999	
      di  "-- Ordered choice  : `band'"
@@ -152,7 +160,7 @@ di""
 		qui count if abs(`T') == `tlim'
 		loc delta = r(N)
 	}
-	 
+
 	qui	su `T' if `touse'
 	loc extreme = max(abs(r(min)), r(max))/r(sd)
 	loc action = cond("`winsor'"=="winsor", "winsorized", "trimmed")
@@ -165,6 +173,7 @@ di""
 	di ""
 	
 	`qq' ivregress 2sls `T' `exog' (`endog' = `iv') if `touse'
+
 /* Modif le 28/07/2014 : Coefs stockés en fonction de la fenêtre  (ne marche qu'avec coefs enties !)  */ 
     local TrimE = int(10*`trim')
     local BandE = int(100*`band')
@@ -213,13 +222,27 @@ di""
 	}
 	else {
 		mat li `mfx', ti("Marginal effects at the mean, average index function")
+
+/* essai de sortie de matrice (11/08/2014) */
+        matrix toto = `mfx'
+        local BB = int(`band'*100)
+        local TT = int(`trim'*10)
+        if "`band'" != "999" {
+            matrix colnames toto = B`BB'T`TT' 
+        }
+        else {
+             matrix colnames toto = Ordered 
+        }
+        matrix list toto
+        local Rows : rownames toto 
+        matrix Meff = Meff , toto
+        matrix rowname Meff = `Rows'
         
 	}
 	eret local cmdname = "sspecialreg"
 	eret scalar N = `enn'
 	eret scalar trim = `trim'
     
-	
 	
 	/*  modification et intégration de ivreg2   */
 	di ""
@@ -239,7 +262,10 @@ di""
 	capture drop Monsample
 	gen Monsample =1 if e(sample)
 	count if e(sample)
-	
+	/* 11/08/2014 : On crée des variables (Uchap = uhat ; Tvar = T, ..) pour sortie  */
+    gen Uchap = `uhat' if `touse'
+    gen Tvar = `T'  if `touse'
+
 	di ""
 	di " ----------TESTS  ------"
 	overid

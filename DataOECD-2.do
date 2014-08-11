@@ -1,5 +1,6 @@
 /* Programme de mise en forme des données issue des programmes de Céline (15/02/2014) */
 /* repris le 19/02/2014 , avec le fichier original de Céline   */
+/* 03/04/2014 : Incorporation du programme de Céline pôur ajout des variables  instrumentales  */
 
 global root "d:/progs/celine/water"
 
@@ -11,8 +12,26 @@ global root "d:/progs/celine/water"
 *drop country /* de l'ancien fichier */
 
 /*18/02/2014  jeu de données Céline Final */
-use  $root/data/OECD_ENV_SURVEY_2011_DATA_Juillet-2012.dta, clear
+*use  $root/data/OECD_ENV_SURVEY_2011_DATA_Juillet-2012.dta, clear
 
+
+
+use "$root\data\OECD2008_regindex.dta", clear
+
+gen country = 1 if H_COUNTRY == 61
+replace country = 2 if H_COUNTRY == 11
+replace country = 4 if H_COUNTRY == 33
+replace country = 8 if H_COUNTRY == 31
+replace country = 10 if H_COUNTRY == 46 
+
+rename REGION region
+sort country region
+
+save "$root\data\OECD2008_index.dta", replace
+
+
+
+use "$root\data\\OECD_ENV_SURVEY_2011_DATA_Juillet-2012.dta", clear
 
 rename exrate EXRATE
 
@@ -411,8 +430,7 @@ rename b2_concern_envi b2_lessconcernenvir
 rename b03_cncrn_rankwaste b03_lessconcernwaste
 rename b03_cncrn_rankwater b03_lessconcernwater
 
-* MODELE PROBIT SUR 11 PAYS (Céline )
-
+* MODELE PROBIT SUR 11 PAYS
 
 *****************************************************************
 *****************************************************************
@@ -428,27 +446,60 @@ xi: probit i_tap a2_age i_under18 i_posthighsch lowincome i_town i_car isatis_he
 */ country ~= 6 & country~=7
 
 
-/* Exportation pour R (19/02/2014 */
+* MODELE SUR AUSTRALIA, CANADA, FRANCE, NETHERLANDS AND SWEDEN
 
-preserve
-keep country a2_age a2_agegroup a03_hhsize a3_under5 a03_under18 a8_incgroup a9_incperc  ///
-a11_residtype a12_home_size a13_residarea b1_happy b2_concern_economic b2_lessconcernenvir ///
-b2_concern_health b2_concern_inttension b2_concern_safety b2_concern_social b3_concern_airpol ///
-b3_concern_biodiv b3_concern_cchange b3_concern_natres b03_lessconcernwaste b3_concern_waterpol ///
-b3_envconcern_index b4_vote b7_trust_govt b08_locenv_airqt b08_locenv_green ///
-b08_indx_locenv b08_locenv_noise b08_locenv_trash b08_locenv_water b10_policy_indx d01_cars ///
-a3_hhsize_imp a3_under18_imp a05_year_post_schol_impute a8_inceur_imp exrate a12_residsize_imp ///
-a14_residten_imp b08_indx_locenv d07_timeto_pubstop_impute i_male i_posthighsch i_empl i_owner ///
-i_town envcrn_index_test b6_env_att4 b6_env_att7 env_index_test locenv_index_test unitcharge ///
-lowincome log_income a2_age_sq i_tap i_under5 isatis_health mg8_wtrstfcn_health isatis_health2 ///
- i_under18 i_concern1_envir i_concern1_health i_car
- 
-sum 
- 
-*keep $yvars $varendog $varindiv country Ncountry 
-save $root/data/OECDFinal.dta, replace
-restore
+keep if country == 1 | country == 2 | country == 4 | country == 8 | country == 10
+
+xi: probit i_tap a2_age i_under18 log_income i_town i_car isatis_health b08_locenv_water i.country 
 
 
+*****************************************************************
+*****************************************************************
+* PROCEDURE CHRISTOPHE
+*****************************************************************
+*****************************************************************
+
+gen region = .
+
+* Australia
+forval num = 1/8 {
+          replace region = `num' if country == 1 & a04_region_aus == `num'
+		  }
+
+* Canada
+replace region = 1 if country == 2 & a04_region_can == 1
+replace region = 2 if country == 2 & a04_region_can == 2
+replace region = 3 if country == 2 & a04_region_can == 3
+replace region = 4 if country == 2 & a04_region_can == 4
+replace region = 5 if country == 2 & a04_region_can == 5
+replace region = 6 if country == 2 & a04_region_can == 7
+replace region = 7 if country == 2 & a04_region_can == 9
+replace region = 8 if country == 2 & a04_region_can == 10
+replace region = 9 if country == 2 & a04_region_can == 11
+replace region = 10 if country == 2 & a04_region_can == 12
+
+* France
+forval num = 1/22 {
+          replace region = `num' if country == 4 & a04_region_fra == `num'
+		  }
+		  
+* Netherlands
+
+replace region = 2 if country == 8 & a04_region_nld == 12 | a04_region_nld == 8 | a04_region_nld == 10
+replace region = 3 if country == 8 & a04_region_nld == 3 | a04_region_nld == 1 | a04_region_nld == 5
+replace region = 4 if country == 8 & a04_region_nld == 9 | a04_region_nld == 4 | a04_region_nld == 2
+replace region = 5 if country == 8 & a04_region_nld == 7 | a04_region_nld == 6 | a04_region_nld == 11
+
+* Sweden
+forval num = 1/21 {
+          replace region = `num' if country == 10 & a04_region_swe == `num'
+		  }
 
 
+sort country region
+merge country region using "$root\data\OECD2008_index.dta"
+tab _merge
+
+keep if country~=. & region~=.
+note : Fichier créé avec DataOECD-2.do le 3 avril 2014
+save "$root\data\DataOECD5", replace

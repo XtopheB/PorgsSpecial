@@ -28,6 +28,7 @@
 rm(list=ls())
 
 setwd("D:/progs/Celine/Water/progs")   
+#setwd("c:/Chris/Zprogs/Celine/Water/progs")   
 
 library(np)
 library(foreign)
@@ -41,6 +42,8 @@ library(texreg)
 ## Variable dipp is replaced by diplo
 
 data.all<-read.dta("../data/OECDFinal.dta")
+
+summary(data.all)
  
 # Data type expressed (and used)
 data.all$i_tap <- factor(data.all$i_tap)
@@ -51,11 +54,12 @@ data.all$i_town <- factor(data.all$i_town)
 data.all$i_car <- factor(data.all$i_car)
 data.all$isatis_health <- factor(data.all$isatis_health)
 data.all$b08_locenv_water <- ordered(data.all$b08_locenv_water)
-#data.all$b3_envconcern_index <- numeric(data.all$b3_envconcern_index) # <- continuous 
+data.all$b3_envconcern_index <- as.numeric(data.all$b3_envconcern_index) # <- continuous 
 data.all$b03_lessconcernwaste <- ordered(data.all$b03_lessconcernwaste)
 data.all$country <- factor(data.all$country)
 data.all$unitcharge <- factor(data.all$unitcharge)
-#data.all$b10_policy_indx <-numeric(data.all$b10_policy_indx)  # <- continuous 
+data.all$b10_policy_indx <-as.numeric(data.all$b10_policy_indx)  # <- continuous 
+
 @
 
 \section{Probit model}
@@ -71,32 +75,40 @@ model.probit <- glm(i_tap ~ a2_age + i_under18  + i_posthighsch + lowincome
 
 @
 
-The underlying linear model estimated is the following (but it is a probit here)~: 
+The underlying linear model estimated is the following (but it is a probit here). 
+
+<<echo=FALSE, label=Formule>>=
+Formule  <- function( modele){
+  f <- modele$formula
+  LHS <- as.character(f)[2]
+  RHS <-  gsub("_", ".", as.character(f)[3])
+  coefs <- gsub(" +","",strsplit(RHS,"\\+")[[1]])
+  
+  vars <- function(x) { paste("",x,"",sep="") }
+  pars <- paste("\\\\beta_",0:(length(coefs)-1),sep="")
+  
+  p1 <- paste(pars[1:4],vars(coefs[1:4]),sep=" \\\\cdot ",collapse="+")
+  p2 <- paste(pars[5:7],vars(coefs[5:7]),sep=" \\\\cdot ",collapse="+")
+  p3 <- paste(pars[8:9],vars(coefs[8:9]),sep=" \\\\cdot ",collapse="+")
+  p4 <- paste(pars[10:length(coefs)],vars(coefs[10:length(coefs)]),sep=" \\\\cdot ",collapse="+")
+  return(list(p1, p2, p3, p4))
+}
+
+@
 
 <<echo=FALSE, label=ProbitModel>>=
-cc <-model.probit$call
-f <- cc$formula
-LHS <- as.character(f)[2]
-RHS <-  gsub("_", ".", as.character(f)[3])
-coefs <- gsub(" +","",strsplit(RHS,"\\+")[[1]])
-vars <- function(x) { paste("",x,"",sep="") }
-
-pars <- paste("\\\\beta_",0:(length(coefs)-1),sep="")
-p1 <- paste(pars[1:4],vars(coefs[1:4]),sep=" \\\\cdot ",collapse="+")
-p2 <- paste(pars[5:7],vars(coefs[5:7]),sep=" \\\\cdot ",collapse="+")
-p3 <- paste(pars[8:9],vars(coefs[8:9]),sep=" \\\\cdot ",collapse="+")
-p4 <- paste(paste(pars[10:length(coefs)],vars(coefs[10:length(coefs)]),sep=" \\\\cdot ",collapse="+"),
-           "+ \\\\epsilon")
-@ 
+prob <- Formule(model.probit)
+@
 
 \begin{eqnarray*}
-i.tap &=& \Sexpr{p1} \\
-      &+& \Sexpr{p2}  \\
-      &+& \Sexpr{p3}  \\
-      &+& \Sexpr{p4}  
+i.tap &=& \Sexpr{prob[1]} \\
+      &+& \Sexpr{prob[2]}   \\
+      &+& \Sexpr{prob[3]}   \\
+      &+& \Sexpr{prob[4]} +\epsilon 
 \end{eqnarray*}
 
-And the results are 
+The AIC is  \textbf{\Sexpr{round(model.probit$aic, 2)}} on \Sexpr{nrow(model.probit$data)} observations in the sample. 
+ 
 <<results=tex, echo=FALSE, label=ProbitResults>>=
 #texreg(model.probit)   # <- if we want to compare models...
 xtable(model.probit, caption="Probit model.",label="tab:coef")
@@ -119,15 +131,231 @@ model.probit7 <- glm(i_tap ~ a2_age + i_under18  + i_posthighsch + lowincome
 
 <<results=tex, echo=FALSE, label=ProbitResults7>>=
 #texreg(model.probit)   # <- if we want to compare models...
-xtable(model.probit, caption="Probit model.",label="tab:coef")
+xtable(model.probit7, caption="Probit model (7 countries).",label="tab:coef")
+@
+
+\section{Modèles Non Paramétriques}
+
+<<echo=FALSE, label=FormuleNP>>=
+FormuleNP  <- function( modele){
+  f <- modele$formula
+  LHS <- as.character(f)[2]
+  RHS <-  gsub("_", ".", as.character(f)[3])
+  coefs <- gsub(" +","",strsplit(RHS,"\\+")[[1]])
+  
+  vars <- function(x) { paste("",x,"",sep="") }
+  pars <- paste("\\\\beta_",0:(length(coefs)-1),sep="")
+  
+  p1 <- paste(vars(coefs[1:4]),sep=" ",collapse=",")
+  p2 <- paste(vars(coefs[5:7]),sep=" ",collapse=",")
+  p3 <- paste(vars(coefs[8:9]),sep=" ",collapse=",")
+  p4 <- paste(vars(coefs[10:length(coefs)]),sep=" ",collapse=",")
+  return(list(p1, p2, p3, p4))
+}
+
+@
+
+\subsection{Modèle 1 (21-02-2014)}
+
+<<echo=FALSE, label=Probit7>>=
+# recovering the estimation bandwidth and data 
+load("Results/bw.celine7-21.02.RData")
+np <- FormuleNP(bw.celine7)
+@
+The model is :
+\begin{eqnarray*}
+i.tap &=& f(\Sexpr{np[1]} \\
+      &+& \Sexpr{np[2]}   \\
+      &+& \Sexpr{np[3]}   \\
+      &+& \Sexpr{np[4]} ) + \epsilon   
+\end{eqnarray*}
+
+<<echo=FALSE, label=CCR>>=
+model.npCeline7<-npconmode(bws=bw.celine7)
+@
+We have a Correctly Classified Ratio (CCR) of \textbf{\Sexpr{round(model.npCeline7$CCR.overall, 4)*100} \%} on  \textbf{\Sexpr{model.npCeline7$nobs}} observations and  \textbf{\Sexpr{model.npCeline7$xndim}}  variables . 
+
+
+<<echo=FALSE, label=ExresultsNP>>=
+Nx <- model.npCeline7$xndim +16
+DF <- read.table(textConnection(capture.output(summary(bw.celine7))[15:Nx]),
+              fill = TRUE)  # Attention, la dernière ligne (Nx) dépend du nombre de variables dans le modèle
+
+@
+
+<<results=tex, echo=FALSE, label=NPResults7>>=
+print(xtable(DF[, 4:9], caption =  'Bandwidth selected and bounds'), include.rownames = FALSE)
+      
+@
+
+<<results=tex, echo=FALSE, label=Confusion>>=
+xtable(model.npCeline7$confusion.matrix, caption =  paste("Confusion matrix on",model.npCeline7$nobs," observations")) 
+@
+
+
+\clearpage
+
+\subsection{Modèle 2 (24-02-2014)}
+
+<<echo=FALSE, label=Probit7>>=
+# recovering the estimation bandwidth and data 
+load("Results/bw.celine7-24.02.RData")
+np <- FormuleNP(bw.celine7)
+@
+The model is :
+\begin{eqnarray*}
+i.tap &=& f(\Sexpr{np[1]} \\
+      &+& \Sexpr{np[2]}   \\
+      &+& \Sexpr{np[3]}   \\
+      &+& \Sexpr{np[4]} ) + \epsilon   
+\end{eqnarray*}
+
+<<echo=FALSE, label=CCR>>=
+model.npCeline7<-npconmode(bws=bw.celine7)
+@
+We have a Correctly Classified Ratio (CCR) of \textbf{\Sexpr{round(model.npCeline7$CCR.overall, 4)*100} \%} on  \textbf{\Sexpr{model.npCeline7$nobs}} observations and  \textbf{\Sexpr{model.npCeline7$xndim}}  variables . 
+
+
+<<echo=FALSE, label=ExresultsNP>>=
+Nx <- model.npCeline7$xndim +16
+DF <- read.table(textConnection(capture.output(summary(bw.celine7))[15:Nx]),
+              fill = TRUE)  # Attention, la dernière ligne (Nx) dépend du nombre de variables dans le modèle
+
+@
+
+<<results=tex, echo=FALSE, label=NPResults7>>=
+print(xtable(DF[, 4:9], caption =  'Bandwidth selected and bounds'), include.rownames = FALSE)
+      
+@
+
+<<results=tex, echo=FALSE, label=Confusion>>=
+xtable(model.npCeline7$confusion.matrix, caption =  paste("Confusion matrix on",model.npCeline7$nobs," observations")) 
+@
+
+\clearpage
+
+\subsection{Modèle 3 (27-02-2014)}
+
+<<echo=FALSE, label=Probit7>>=
+# recovering the estimation bandwidth and data 
+load("Results/bw.celine7-27.02.RData")
+np <- FormuleNP(bw.celine7)
+@
+The model is :
+\begin{eqnarray*}
+i.tap &=& f(\Sexpr{np[1]} \\
+      &+& \Sexpr{np[2]}   \\
+      &+& \Sexpr{np[3]}   \\
+      &+& \Sexpr{np[4]} ) + \epsilon   
+\end{eqnarray*}
+
+<<echo=FALSE, label=CCR>>=
+model.npCeline7<-npconmode(bws=bw.celine7)
+@
+We have a Correctly Classified Ratio (CCR) of \textbf{\Sexpr{round(model.npCeline7$CCR.overall, 4)*100} \%} on  \textbf{\Sexpr{model.npCeline7$nobs}} observations and  \Sexpr{model.npCeline7$xndim}  variables . 
+
+
+<<echo=FALSE, label=ExresultsNP>>=
+Nx <- model.npCeline7$xndim +16
+DF <- read.table(textConnection(capture.output(summary(bw.celine7))[15:Nx]),
+              fill = TRUE)  # Attention, la dernière ligne (Nx) dépend du nombre de variables dans le modèle
+
+@
+
+<<results=tex, echo=FALSE, label=NPResults7>>=
+print(xtable(DF[, 4:9], caption =  'Bandwidth selected and bounds'), include.rownames = FALSE)
+      
+@
+
+<<results=tex, echo=FALSE, label=Confusion>>=
+xtable(model.npCeline7$confusion.matrix, caption =  paste("Confusion matrix on",model.npCeline7$nobs," observations")) 
+@
+
+
+<<echo=FALSE, label=Grid>>=
+## Graphique unidimentionnel avec comme X = b08_locenv_water
+attach(data.7)
+ncalc<-50
+# Choix du X et generation sequence des points entre quantiles 10% et 90% ! 
+ 
+b3_envconcern_index.calc <- seq(quantile(b3_envconcern_index,.1, na.rm=TRUE),
+                                quantile(b3_envconcern_index,.9, na.rm=TRUE), length=ncalc)
+
+# Choix des references
+a2_age.ref <- quantile(a2_age, .5, na.rm=TRUE)
+i_under18.ref <- c(1)
+i_posthighsch.ref <- c(1)
+lowincome.ref <- c(1)
+i_town.ref <- c(1)
+i_car.ref <- c(1)
+isatis_health.ref <- c(0)
+b08_locenv_water.ref <- "Unsatisfied"   #  "Satisfied",  "Very satisfied"
+#b3_envconcern_index.ref <- quantile(b3_envconcern_index, .5, na.rm=TRUE)
+b03_lessconcernwaste.ref <- c(1)
+b10_policy_indx.ref <- quantile(b10_policy_indx, .5, na.rm=TRUE)
+country.ref <- "AUSTRALIA"
+
+
+x.eval <- expand.grid(
+  a2_age = a2_age.ref,
+  i_under18 = i_under18.ref,
+  i_posthighsch = i_posthighsch.ref,
+  lowincome = lowincome.ref,
+  i_town = i_town.ref,
+  i_car = i_car.ref,
+  isatis_health = isatis_health.ref,
+  b08_locenv_water = b08_locenv_water.ref,
+  b3_envconcern_index = b3_envconcern_index.calc,  # <--Mon x !
+  b03_lessconcernwaste = b03_lessconcernwaste.ref,
+  b10_policy_indx = b10_policy_indx.ref,
+  country = country.ref)
+
+
+data.eval <- data.frame(i_tap = factor(rep(1,nrow(x.eval))), 
+                        a2_age = as.numeric(x.eval[,1]),
+                        i_under18 = factor(x.eval[,2]),
+                        i_posthighsch = factor(x.eval[,3]),  
+                        lowincome = factor(x.eval[,4]),
+                        i_town = factor(x.eval[,5]),
+                        i_car = factor(x.eval[,6]),
+                        isatis_health = factor(x.eval[,7]),
+                        b08_locenv_water = ordered(x.eval[,8]),
+                        b3_envconcern_index = as.numeric(x.eval[,9]),  
+                        b03_lessconcernwaste = ordered(x.eval[,10]),
+                        b10_policy_indx = as.numeric(x.eval[,11]),
+                        country = factor(x.eval[,12])
+                        )
+
+
+## Predictions pour les 2 modèles 
+
+cfhat <- fitted(npcdens(bws=bw.celine7, newdata=data.eval))
+cflogit <- predict(model.probit7, type = "response", newdata=data.eval)
+@
+
+<<echo=FALSE, results=hide, fig=TRUE, label=Graph>>=
+plot(b3_envconcern_index.calc, cfhat, col="red",  type="l",
+     xlim=c(quantile(b3_envconcern_index.calc,.1),quantile(b3_envconcern_index.calc,.9)),
+     #ylim=c(0.3,0.8) 
+     ylim = c(min(quantile(cfhat, 0.1),quantile(cflogit, 0.1)), max(quantile(cfhat, 0.9),quantile(cflogit, 0.9))),
+     main= paste("Discrete choice models \n Country :",country.ref,""),
+     xlab="",
+     ylab="Prob[i_tab=1]",
+     lty=3,
+     lwd=3,
+     sub=paste("Age=",a2_age.ref,", under18=", i_under18.ref,", HS =",i_posthighsch.ref, 
+               ", Inc.=",lowincome.ref,", Town=",i_town.ref,", car=", i_car.ref,", Health= ",isatis_health.ref," \n",
+               "",b08_locenv_water.ref, ", Waste", b03_lessconcernwaste.ref,", Policy = ",round(b10_policy_indx.ref,2),"" )   
+)
+
+lines(b3_envconcern_index.calc, cflogit, col="blue", lty=2)
+legend("left",legend=c("NP model", "Probit model"),
+       lty=c(3,2),col=c("red","blue"),
+       cex=1.2, bty="n")
+
 @
 
 
 
-
-\section{Modèle NP}
-
-
-bla bla bla 
 
 \end{document}

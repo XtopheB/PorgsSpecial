@@ -30,6 +30,14 @@ count
 egen mprix_2008 = mean(prix_2008)
 gen Special = -(prix_2008 - mprix_2008)
 
+
+/* Relation i_tap et Special  */
+lpoly i_tap Special, noscatter  degree(0) ci lineopts(lcolor(cranberry)) ///
+			ciopts(recast(rarea) fintensity(30)) ///
+			title(Relation between decision variable and special regressor) scheme(sj)
+
+graph export "Graphs/RelationD-V.pdf", replace
+
 global exog "i_under18 log_income i_town i_car b08_locenv_water a2_age i_can i_fra"
 global endog "isatis_health"
 global instrument "itap_2008 iconcernwatpol_2008"
@@ -51,10 +59,10 @@ set more off
 /* <<<<<  OPTIONS  >>>>>>>>>>>>>*/ 
 
 /* Choix du trim   */
-local t= 5
+local t= 5.0
 /*winsor ou pas  */
-*local W = "winsor"
-local W = ""
+local W = "winsor"
+*local W = ""
 /* Pour les noms de fichier  */
 local TrimE = int(10*`t')
 
@@ -63,22 +71,20 @@ log using "Logs\ResultsTrim`TrimE'`W'", replace
 set linesize 88 
  
 /* Avec fenêtre choisie  automatiquement  (Silverman)  */ 
-
-di in red " --- Trim = `t' ; Fenetre de Silverman :   `e(Band)'  ---" 
-
-quietly Monsspecialreg2 i_tap Special, exog($exog) endog($endog) iv($instrument) hetero kdens  trim(`t') `W'
+*quietly Monsspecialreg2 i_tap Special, exog($exog) endog($endog) iv($instrument) hetero kdens  trim(`t') `W'
+*di in red " --- Trim = `t' ; Fenetre de Silverman :   `e(Band)'  ---" 
 
 /* On recupère les données pour calcul CV sous R */
-save "data/FinalCV.dta", replace
+*save "data/FinalCV.dta", replace
 
 /* La valeur de la fenêtre CV est 1.004  */
-quietly Monsspecialreg2 i_tap Special, exog($exog) endog($endog) iv($instrument) hetero kdens band(1.00) trim(`t') `W'
+*quietly Monsspecialreg2 i_tap Special, exog($exog) endog($endog) iv($instrument) hetero kdens band(1.00) trim(`t') `W'
 
 /* On lance aussi une version avec ordered choice : Band= 999 */
 quietly Monsspecialreg2 i_tap Special, exog($exog) endog($endog) iv($instrument) hetero trim(`t') `W'
 
-/* Avec 3 choix de fenêtres  */
-forvalues b = 0.1(0.2)0.5{
+/* Avec Silverman (0.23) , 3 choix de fenêtres  et CV (1.004)  */
+foreach  b in  0.1 0.23 0.30 0.5 1.004 {
 
 di in red " >>>>   band = `b'  ;   trim = `t'   <<<< "
 
@@ -127,8 +133,8 @@ translate "Logs/ResultsTrim`TrimE'`W'.smcl"  "Logs/ResultsTrim`TrimE'`W'.pdf", t
 
 
 /* Graphiques  */
-twoway (kdens TvarB23T`TrimE') (kdens TvarB100T`TrimE' )  (kdens TvarB99900T`TrimE') ///
-		(kdens TvarB10T`TrimE')  (kdens TvarB30T`TrimE') (kdens TvarB50T`TrimE')
+twoway (kdens TvarB99900T`TrimE')(kdens TvarB10T`TrimE')(kdens TvarB23T`TrimE')    ///
+		  (kdens TvarB30T`TrimE') (kdens TvarB50T`TrimE')(kdens TvarB100T`TrimE' )
 graph export "Graphs/DensTvar`TrimE'`W'.pdf", replace
 
 graph hbox TvarB* , medtype(cline) medline(lcolor(cranberry) lwidth(medthick))

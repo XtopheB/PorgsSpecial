@@ -1,0 +1,228 @@
+% Created (CB) 11/05/2014
+
+\documentclass[a4paper]{article}
+
+\title{Special regressor Results}
+\author{Christophe Bontemps }
+
+\usepackage{setspace,graphicx,srcltx,enumitem,harvard, subfig}
+\usepackage{setspace, relsize}   % <-- for package LaTex in Hmisc to work
+\usepackage{rotating}
+\usepackage{lscape}
+\usepackage[latin1]{inputenc}
+\usepackage{url}  % for urls...
+\usepackage{dcolumn} %for stargazer tables
+\hypersetup{
+colorlinks=true,
+urlcolor=blue}
+
+%  Gestion de la biblio avec des liens
+\usepackage{html}
+\usepackage{harvard}
+\renewcommand{\harvardurl}{URL: \url}
+
+
+
+\begin{document}
+
+% ------------Debut du papier -------------
+%\maketitle
+%\tableofcontents
+%\newpage
+\begin{center}
+\Large{\textbf{Results for trim = 0.5\% }}
+\end{center}
+
+\section{No Winsorization}
+The First column is with ordered choices (bandwidth is written 999). We  have computed the  automatically selected bandwidth  (= .23), \& Cross Validation (= 1.004). 3 other  bandwidths were selected (0.10, 0.30 and 0.50). We report the results from the lowest to the greatest bandwidths. \\
+
+\input{Logs/ResultsTrim5.tex}
+
+\newpage
+
+\begin{sidewaysfigure}[h!]
+\caption{Graphically represented coefficients for each of the 6 models : in MdxxxTyy  where xxx is the bandwidth x 100 and yy is the trimming *10 
+(Bandwidth = 999 for ordered choice)}\label{PlotFOK}
+\includegraphics[width=1.0\textwidth]{Graphs/CoefsTrim5.pdf}
+
+\end{sidewaysfigure}
+\clearpage
+%\newpage
+
+\subsection{Marginal effects}
+\input{Logs/MfxTrim5.tex}
+The First column is with ordered choices (bandwidth is written 999). We  have computed the  automatically selected bandwidth  (= .23), \& Cross Validation (= 1.004). 3 other  bandwidths were selected (0.10, 0.30 and 0.50). We report the results from the lowest to the greatest bandwidths. \\
+\newpage
+\subsection{Stats on $T$ variable}
+
+\input{Logs/TvarTrim5.tex}
+
+\includegraphics[width=0.8\textwidth]{Graphs/BoxTvar5.pdf}
+
+
+\includegraphics[width=0.8\textwidth]{Graphs/DensTvar5.pdf}
+
+\section{With Winsorization}
+The First column is with ordered choices (bandwidth is written 999). We  have computed the  automatically selected bandwidth  (= .23), \& Cross Validation (= 1.004). 3 other  bandwidths were selected (0.10, 0.30 and 0.50). We report the results from the lowest to the greatest bandwidths. \\
+
+\input{Logs/ResultsTrim5winsor.tex}
+
+\newpage
+
+\begin{sidewaysfigure}[h!]
+\caption{Graphically represented coefficients for each of the 6 models : in MdxxxTyy  where xxx is the bandwidth x 100 and yy is the trimming *10 (Bandwidth = 999 for ordered choice) )}\label{PlotFOK}
+\includegraphics[width=1.0\textwidth]{Graphs/CoefsTrim5winsor.pdf}
+
+\end{sidewaysfigure}
+\clearpage
+%\newpage
+
+\subsection{Marginal effects}
+\input{Logs/MfxTrim5winsor.tex}
+The First column is with ordered choices (bandwidth is written 999). We  have computed the  automatically selected bandwidth  (= .23), \& Cross Validation (= 1.004). 3 other  bandwidths were selected (0.10, 0.30 and 0.50). We report the results from the lowest to the greatest bandwidths. \\
+\newpage
+\subsection{Stats on $T$ variable}
+
+\input{Logs/TvarTrim5winsor.tex}
+
+\includegraphics[width=0.8\textwidth]{Graphs/BoxTvar5winsor.pdf}
+
+
+\includegraphics[width=0.8\textwidth]{Graphs/DensTvar5winsor.pdf}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newpage
+
+\begin{center}
+\Large{\textbf{Results for trim = 2.5\% }}
+\end{center}
+
+\section{No Winsorization}
+The First column is with ordered choices (bandwidth is written 999). We  have computed the  automatically selected bandwidth  (= .23), \& Cross Validation (= 1.004). 3 other  bandwidths were selected (0.10, 0.30 and 0.50). We report the results from the lowest to the greatest bandwidths. \\
+
+\input{Logs/ResultsTrim25.tex}
+
+\newpage
+
+\begin{sidewaysfigure}[h!]
+\caption{Graphically represented coefficients for each of the 6 models : in MdxxxTyy  where xxx is the bandwidth x 100 and yy is the trimming *10 (Bandwidth = 999 for ordered choice) )}\label{PlotFOK}
+\includegraphics[width=1.0\textwidth]{Graphs/CoefsTrim25.pdf}
+
+\end{sidewaysfigure}
+\clearpage
+%\newpage
+
+\subsection{Marginal effects}
+\input{Logs/MfxTrim25.tex}
+The First column is with ordered choices (bandwidth is written 999). We  have computed the  automatically selected bandwidth  (= .23), \& Cross Validation (= 1.004). 3 other  bandwidths were selected (0.10, 0.30 and 0.50). We report the results from the lowest to the greatest bandwidths. \\
+\newpage
+\subsection{Stats on $T$ variable}
+
+\input{Logs/TvarTrim25.tex}
+
+\includegraphics[width=0.8\textwidth]{Graphs/BoxTvar25.pdf}
+
+
+\includegraphics[width=0.8\textwidth]{Graphs/DensTvar25.pdf}
+
+\section{With Winsorization}
+The First column is with ordered choices (bandwidth is written 999). We  have computed the  automatically selected bandwidth  (= .23), \& Cross Validation (= 1.004). 3 other  bandwidths were selected (0.10, 0.30 and 0.50). We report the results from the lowest to the greatest bandwidths. \\
+
+\input{Logs/ResultsTrim25winsor.tex}
+
+\newpage
+
+\begin{sidewaysfigure}[h!]
+\caption{Graphically represented coefficients for each of the 6 models : in MdxxxTyy  where xxx is the bandwidth x 100 and yy is the trimming *10 (Bandwidth = 999 for ordered choice) )}\label{PlotFOK}
+\includegraphics[width=1.0\textwidth]{Graphs/CoefsTrim25winsor.pdf}
+
+\end{sidewaysfigure}
+\clearpage
+%\newpage
+
+\subsection{Marginal effects}
+\input{Logs/MfxTrim25winsor.tex}
+The First column is with ordered choices (bandwidth is written 999). We  have computed the  automatically selected bandwidth  (= .23), \& Cross Validation (= 1.004). 3 other  bandwidths were selected (0.10, 0.30 and 0.50). We report the results from the lowest to the greatest bandwidths. \\
+\newpage
+\subsection{Stats on $T$ variable}
+
+\input{Logs/TvarTrim25winsor.tex}
+
+\includegraphics[width=0.8\textwidth]{Graphs/BoxTvar25winsor.pdf}
+
+
+\includegraphics[width=0.8\textwidth]{Graphs/DensTvar25winsor.pdf}
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newpage
+
+\begin{center}
+\Large{\textbf{Results for trim = 5\% }}
+\end{center}
+
+\section{No Winsorization}
+The First column is with ordered choices (bandwidth is written 999). We  have computed the  automatically selected bandwidth  (= .23), \& Cross Validation (= 1.004). 3 other  bandwidths were selected (0.10, 0.30 and 0.50). We report the results from the lowest to the greatest bandwidths. \\
+
+\input{Logs/ResultsTrim50.tex}
+
+\newpage
+
+\begin{sidewaysfigure}[h!]
+\caption{Graphically represented coefficients for each of the 6 models : in MdxxxTyy  where xxx is the bandwidth x 100 and yy is the trimming *10 (Bandwidth = 999 for ordered choice) )}\label{PlotFOK}
+\includegraphics[width=1.0\textwidth]{Graphs/CoefsTrim50.pdf}
+
+\end{sidewaysfigure}
+\clearpage
+%\newpage
+
+\subsection{Marginal effects}
+\input{Logs/MfxTrim50.tex}
+The First column is with ordered choices (bandwidth is written 999). We  have computed the  automatically selected bandwidth  (= .23), \& Cross Validation (= 1.004). 3 other  bandwidths were selected (0.10, 0.30 and 0.50). We report the results from the lowest to the greatest bandwidths. \\
+\newpage
+\subsection{Stats on $T$ variable}
+
+\input{Logs/TvarTrim50.tex}
+
+\includegraphics[width=0.8\textwidth]{Graphs/BoxTvar50.pdf}
+
+
+\includegraphics[width=0.8\textwidth]{Graphs/DensTvar50.pdf}
+
+\section{With Winsorization}
+The First column is with ordered choices (bandwidth is written 999). We  have computed the  automatically selected bandwidth  (= .23), \& Cross Validation (= 1.004). 3 other  bandwidths were selected (0.10, 0.30 and 0.50). We report the results from the lowest to the greatest bandwidths. \\
+
+\input{Logs/ResultsTrim50winsor.tex}
+
+\newpage
+
+\begin{sidewaysfigure}[h!]
+\caption{Graphically represented coefficients for each of the 6 models : in MdxxxTyy  where xxx is the bandwidth x 100 and yy is the trimming *10 (Bandwidth = 999 for ordered choice) )}\label{PlotFOK}
+\includegraphics[width=1.0\textwidth]{Graphs/CoefsTrim50winsor.pdf}
+
+\end{sidewaysfigure}
+\clearpage
+%\newpage
+
+\subsection{Marginal effects}
+\input{Logs/MfxTrim50winsor.tex}
+The First column is with ordered choices (bandwidth is written 999). We  have computed the  automatically selected bandwidth  (= .23), \& Cross Validation (= 1.004). 3 other  bandwidths were selected (0.10, 0.30 and 0.50). We report the results from the lowest to the greatest bandwidths. \\
+\newpage
+\subsection{Stats on $T$ variable}
+
+\input{Logs/TvarTrim50winsor.tex}
+
+\includegraphics[width=0.8\textwidth]{Graphs/BoxTvar50winsor.pdf}
+
+
+\includegraphics[width=0.8\textwidth]{Graphs/DensTvar50winsor.pdf}
+
+
+
+
+\end{document}
+
+

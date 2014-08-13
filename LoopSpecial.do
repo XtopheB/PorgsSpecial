@@ -32,11 +32,13 @@ gen Special = -(prix_2008 - mprix_2008)
 
 
 /* Relation i_tap et Special  */
+/*
 lpoly i_tap Special, noscatter  degree(0) ci lineopts(lcolor(cranberry)) ///
 			ciopts(recast(rarea) fintensity(30)) ///
 			title(Relation between decision variable and special regressor) scheme(sj)
 
 graph export "Graphs/RelationD-V.pdf", replace
+*/
 
 global exog "i_under18 log_income i_town i_car b08_locenv_water a2_age i_can i_fra"
 global endog "isatis_health"
@@ -81,7 +83,10 @@ set linesize 88
 *quietly Monsspecialreg2 i_tap Special, exog($exog) endog($endog) iv($instrument) hetero kdens band(1.00) trim(`t') `W'
 
 /* On lance aussi une version avec ordered choice : Band= 999 */
-quietly Monsspecialreg2 i_tap Special, exog($exog) endog($endog) iv($instrument) hetero trim(`t') `W'
+
+quietly Monsspecialreg2 i_tap Special, exog($exog) endog($endog) iv($instrument)  ///
+						hetero hetv(i_under18 log_income i_town b08_locenv_water) ///
+						trim(`t') `W'  
 
 /* Avec Silverman (0.23) , 3 choix de fenêtres  et CV (1.004)  */
 foreach  b in  0.1 0.23 0.30 0.5 1.004 {
@@ -89,7 +94,9 @@ foreach  b in  0.1 0.23 0.30 0.5 1.004 {
 di in red " >>>>   band = `b'  ;   trim = `t'   <<<< "
 
 /* On utilise une version modifiée de Monspecialreg2.do qui stocke les résulats dans Md */
-quietly Monsspecialreg2 i_tap Special, exog($exog) endog($endog) iv($instrument) hetero kdens band(`b') trim(`t') `W'
+quietly Monsspecialreg2 i_tap Special, exog($exog) endog($endog) iv($instrument) ///
+								hetero hetv(i_under18 log_income i_town b08_locenv_water) ///
+								kdens band(`b') trim(`t') `W'
  
 }
 

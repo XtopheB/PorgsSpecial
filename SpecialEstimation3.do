@@ -4,7 +4,9 @@
 /* 25/07/2014 : utilisation du fichier de données de Céline  */
 
 clear
-global root "d:/progs/celine/water"
+*global root "d:/progs/celine/water"
+global root "c:/Chris/progs/celine/water"
+
 cd $root
 use "$root\data\table for ssreg.dta", clear
 count
@@ -83,10 +85,17 @@ sspecialreg i_tap Special, exog($exog) endog($endog) iv($instrument) /*
 */ hetero hetv(i_under18 log_income i_town b08_locenv_water) /*
 */ trim(2.5) bs bsreps(999)
 
+
+/* 03/09/2014 : Modèle sans Hetero  */
+
+discard
+sspecialreg i_tap Special, exog($exog) endog($endog) iv($instrument) ///
+kdens   trim(2.5)  bs bsreps(399) 
+
+/* Pour sortie Rtf   */
+esttab using ModelNoHetero.rtf, se brackets stat(band trim boot ) obslast replace  noeqlines compress star( * 0.10 ** 0.05  *** 0.01)
 log close 
 
-
-keep if Monsample == 1
 
 * PROBIT SIMPLE
 
@@ -94,7 +103,15 @@ xi: probit i_tap a2_age prix_2008 i_under18 log_income i_town i_car isatis_healt
 lstat
 margins, dydx(*) predict(pr)
 
+preserve
+keep if e(sample)
+* Sauvegarde de l'échantillon du papier !!!
+save "$root\data\FinalFile.dta", replace
+count
+restore
 * BIPROBIT
+
+
 
 xi: biprobit (i_tap a2_age prix_2008 i_under18 log_income i_town i_car isatis_health b08_locenv_water i.country) /*
 */ (isatis_health a2_age prix_2008 i_under18 log_income i_town i_car b08_locenv_water i.country itap_2008 iconcernwatpol_2008)
